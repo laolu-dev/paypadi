@@ -1,9 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:paypadi/config/provider_registry/provider_registry.dart';
 import 'package:paypadi/config/router/router.gr.dart';
-import 'package:paypadi/core/models/user_model/user_model.dart';
 import 'package:paypadi/core/repositories/authentication/i_authentication_repository.dart';
 import 'package:paypadi/core/utils/constants.dart';
 import 'package:paypadi/core/utils/extensions.dart';
@@ -33,19 +31,26 @@ class AuthenticationController extends _$AuthenticationController {
 
     await result.fold(
       (response) async {
-        unawaited(
-          Future.wait([
-            _saveSessionTokens(
-              response.data.refreshToken,
-              response.data.accessToken,
-            ),
-            _saveUser(response.data.user),
-            _savePassword(password),
-          ]),
-        );
+        await Future.wait([
+          ref.read(notificationsServiceProvider).requestPermission(),
 
-        await ref.read(appRouterProvider).push(const DashboardRoute());
+          _saveSession(
+            refreshToken: response.data.refreshToken,
+            accessToken: response.data.accessToken,
+            refreshExpiry: response.data.refreshTokenExpiry,
+            accessExpiry: response.data.accessTokenExpiry,
+          ),
+
+          _saveToCache(CacheKeys.phoneNumber, phoneNumber),
+          _saveToCache(CacheKeys.password, password),
+        ]);
+
+        ref.read(notificationsServiceProvider).onTokenRefresh.listen((token) {
+          token.printLog();
+        });
+
         state = const AsyncData(null);
+        await ref.read(appRouterProvider).push(const DashboardRoute());
       },
       (exception) {
         ref.showExceptionMessage(exception);
@@ -61,21 +66,18 @@ class AuthenticationController extends _$AuthenticationController {
     final result = await _repository.createAccount(payload);
 
     await result.fold(
-      (success) async {
-        unawaited(
-          Future.wait([
-            _saveUser(success.data.user),
-            _saveSessionTokens(
-              success.data.refreshToken,
-              success.data.accessToken,
-            ),
-          ]),
+      (response) async {
+        await _saveSession(
+          refreshToken: response.data.refreshToken,
+          accessToken: response.data.accessToken,
+          refreshExpiry: response.data.refreshTokenExpiry,
+          accessExpiry: response.data.accessTokenExpiry,
         );
 
+        state = const AsyncData(null);
         await ref
             .read(appRouterProvider)
             .push(const CreateTransactionPinRoute());
-        state = const AsyncData(null);
       },
       (failure) {
         ref.showExceptionMessage(failure);
@@ -133,27 +135,21 @@ class AuthenticationController extends _$AuthenticationController {
 
   Future<void> loginWithBiometrics() async {
     final biometricService = ref.watch(biometricsProvider);
-    final localCache = await ref.read(localCacheProvider.future);
-
-    final user = await localCache.get<UserModel?>(
-      CacheKeys.user,
-      (data) {
-        final json = jsonDecode(data as String) as Map<String, dynamic>;
-        return UserModel.fromJson(json);
-      },
-    );
-
-    if (user == null) return;
 
     try {
       final didAuthenticate = await biometricService.authenticate();
 
       if (didAuthenticate) {
+        final phoneNumber = await ref
+            .read(secureCacheProvider)
+            .get<String?>(CacheKeys.phoneNumber);
         final password = await ref
             .read(secureCacheProvider)
             .get<String?>(CacheKeys.password);
 
-        await login(user.phoneNumber, password ?? '');
+        if (phoneNumber == null || password == null) return;
+
+        await login(phoneNumber, password);
       }
     } catch (exception) {
       ref.showExceptionMessage(exception);
@@ -175,21 +171,16 @@ class AuthenticationController extends _$AuthenticationController {
         );
   }
 
-  Future<void> _saveUser(UserModel user) async {
-    final localCache = await ref.read(localCacheProvider.future);
-    await localCache.save(key: CacheKeys.user, value: user.toJson());
+  Future<void> _saveToCache(String key, String value) async {
+    await ref.read(secureCacheProvider).save(key: key, value: value);
   }
 
-  Future<void> _savePassword(String password) async {
-    await ref
-        .read(secureCacheProvider)
-        .save(key: CacheKeys.password, value: password);
-  }
-
-  Future<void> _saveSessionTokens(
-    String refreshToken,
-    String accessToken,
-  ) async {
+  Future<void> _saveSession({
+    required String refreshToken,
+    required String accessToken,
+    required int refreshExpiry,
+    required int accessExpiry,
+  }) async {
     await ref
         .read(secureCacheProvider)
         .save(key: CacheKeys.refreshToken, value: refreshToken);

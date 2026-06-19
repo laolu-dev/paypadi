@@ -2,10 +2,7 @@ import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:paypadi/config/provider_registry/provider_registry.dart';
 import 'package:paypadi/config/router/router.gr.dart';
-import 'package:paypadi/core/models/user_model/user_model.dart';
-import 'package:paypadi/core/utils/constants.dart';
 
 @AutoRouterConfig()
 class AppRouter extends RootStackRouter {
@@ -201,18 +198,18 @@ class AuthenticationGuard extends AutoRouteGuard {
     NavigationResolver resolver,
     StackRouter router,
   ) async {
-    final accessToken = await ref
-        .read(secureCacheProvider)
-        .get<String?>(CacheKeys.accessToken);
+    // final accessToken = await ref
+    //     .read(secureCacheProvider)
+    //     .get<String?>(CacheKeys.accessToken);
 
-    final refreshToken = await ref
-        .read(secureCacheProvider)
-        .get<String?>(CacheKeys.refreshToken);
+    // final refreshToken = await ref
+    //     .read(secureCacheProvider)
+    //     .get<String?>(CacheKeys.refreshToken);
 
-    if (accessToken != null && refreshToken != null) {
-      resolver.redirectUntil(const SignInRoute());
-      return;
-    }
+    // if (accessToken != null && refreshToken != null) {
+    //   resolver.redirectUntil(const SignInRoute());
+    //   return;
+    // }
 
     resolver.next();
   }
@@ -264,16 +261,16 @@ class DriverAccountGuard extends AutoRouteGuard {
     NavigationResolver resolver,
     StackRouter router,
   ) async {
-    final localCache = await ref.read(localCacheProvider.future);
-    final UserModel? user = await localCache.get(
-      CacheKeys.user,
-      (raw) => UserModel.fromJson(raw as Map<String, dynamic>),
-    );
+    // final localCache = await ref.read(localCacheProvider.future);
+    // final UserModel? user = await localCache.get(
+    //   CacheKeys.user,
+    //   (raw) => UserModel.fromJson(raw as Map<String, dynamic>),
+    // );
 
-    if (user?.isDriver == true && user?.isApproved == false) {
-      unawaited(router.replace(const VehicleInformationRoute()));
-      return;
-    }
+    // if (user?.isDriver == true && user?.isApproved == false) {
+    //   unawaited(router.replace(const VehicleInformationRoute()));
+    //   return;
+    // }
 
     resolver.next();
   }
