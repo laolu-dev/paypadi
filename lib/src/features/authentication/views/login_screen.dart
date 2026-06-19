@@ -42,8 +42,8 @@ class LoginScreen extends HookConsumerWidget {
 
     return AppScaffold(
       showAppBar: false,
-      topPadding: kTopPadding,
-      bottomPadding: Values.v24,
+      // topPadding: kTopPadding,
+      // bottomPadding: Values.v24,
       child: Column(
         children: [
           const AppAvatar(radius: Values.v84, imageUrl: kDemoProfilePic),

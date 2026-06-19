@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -36,18 +37,18 @@ class UserWallet extends HookConsumerWidget {
                       color: AppColors.walletCardTextColor,
                     ),
                   ),
-                  // InkWell(
-                  //   onTap: () => hideBalance.value = !hideBalance.value,
-                  //   child: Padding(
-                  //     padding: const EdgeInsets.all(Values.v4),
-                  //     child: Icon(
-                  //       hideBalance.value
-                  //           ? Iconsax.eye_slash_outline
-                  //           : Iconsax.eye_outline,
-                  //       color: AppColors.walletCardIconColor,
-                  //     ),
-                  //   ),
-                  // ),
+                  InkWell(
+                    onTap: () => hideBalance.value = !hideBalance.value,
+                    child: Padding(
+                      padding: const EdgeInsets.all(Values.v4),
+                      child: Icon(
+                        hideBalance.value
+                            ? CupertinoIcons.eye_slash
+                            : CupertinoIcons.eye,
+                        color: AppColors.walletCardIconColor,
+                      ),
+                    ),
+                  ),
                 ],
               ),
               Skeletonizer(

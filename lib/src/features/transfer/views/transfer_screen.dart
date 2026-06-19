@@ -21,11 +21,12 @@ import 'package:skeletonizer/skeletonizer.dart';
 
 @RoutePage()
 class TransferScreen extends HookConsumerWidget {
-  const TransferScreen({super.key});
+  const TransferScreen({super.key, this.number});
+  final String? number;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final receipientAccountNumber = useTextEditingController();
+    final receipientAccountNumber = useTextEditingController(text: number);
 
     return AppScaffold(
       title: 'Transfer',
