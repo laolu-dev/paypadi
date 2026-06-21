@@ -10,10 +10,11 @@ import 'package:paypadi/config/gen/assets.gen.dart';
 import 'package:paypadi/config/provider_registry/provider_registry.dart';
 import 'package:paypadi/config/router/router.gr.dart';
 import 'package:paypadi/core/utils/constants.dart';
+import 'package:paypadi/core/utils/enums.dart';
 import 'package:paypadi/core/utils/extensions.dart';
 import 'package:paypadi/src/features/home/controller/wallet_controller.dart';
 import 'package:paypadi/src/features/home/widgets/amount_display.dart';
-import 'package:paypadi/src/features/home/widgets/user_wallet.dart';
+import 'package:paypadi/src/features/home/widgets/user_wallets.dart';
 import 'package:paypadi/src/features/transfer/controller/transaction_controller.dart';
 import 'package:paypadi/src/shared/controllers/user_profile/user_profile_controller.dart';
 import 'package:paypadi/src/shared/widgets/app_keypad.dart';
@@ -32,7 +33,6 @@ class DashboardScreen extends HookConsumerWidget {
 
     return AppScaffold(
       showAppBar: false,
-
       appBar: CustomAppbar(name: user.value?.firstName),
       onRefresh: () => Future(
         () => ref.invalidate(walletControllerProvider),
@@ -41,7 +41,7 @@ class DashboardScreen extends HookConsumerWidget {
       child: Column(
         children: [
           Values.v32.verticalSpace,
-          const UserWallet(),
+          UserWallet(type: user.value?.role ?? AccountType.unknown),
           Values.v32.verticalSpace,
           AmountDisplay(controller: amountTextController),
           Values.v48.verticalSpace,
@@ -55,7 +55,7 @@ class DashboardScreen extends HookConsumerWidget {
             children: [
               Flexible(
                 child: FilledButton.icon(
-                  onPressed: canTransfer(amountValue.text)
+                  onPressed: _canTransfer(amountValue.text)
                       ? () => initializeTransferProcess(ref, amountValue.text)
                       : null,
                   label: const Text('Send Cash'),
@@ -90,7 +90,7 @@ class DashboardScreen extends HookConsumerWidget {
     unawaited(ref.read(appRouterProvider).push(TransferRoute()));
   }
 
-  bool canTransfer(String value) {
+  bool _canTransfer(String value) {
     if (value.trim().isEmpty) return false;
 
     // 1. Strip out commas, spaces, currency symbols, etc.

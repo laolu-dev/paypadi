@@ -181,6 +181,8 @@ class CacheKeys {
   static const String accessTokenExpiry =
       'session_access_token_expiry_duration';
 
+  static const String firstName = 'user_first_name';
+  static const String email = 'user_email';
   static const String password = 'user_password';
   static const String phoneNumber = 'user_phone_number';
   static const String transactionPin = 'user_transaction_pin';
