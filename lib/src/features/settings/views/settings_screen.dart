@@ -27,6 +27,7 @@ class SettingsScreen extends HookConsumerWidget {
     return AppScaffold(
       showAppBar: false,
       makeScrollable: true,
+      onRefresh: () => Future.delayed(Durations.medium4),
       padding: EdgeInsets.zero,
       appBar: AppBar(
         centerTitle: false,
@@ -124,7 +125,7 @@ class SettingsScreen extends HookConsumerWidget {
             onTap: () =>
                 ref.read(authenticationControllerProvider.notifier).logout(),
           ),
-          Values.v36.verticalSpace,
+
           Text(
             'App Version: ${appVersion.value?.version}',
             style: context.textTheme.bodySmall?.copyWith(
